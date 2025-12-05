@@ -1,0 +1,37 @@
+<!-- views/fruits/index.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fruits Index</title>
+    <link rel="stylesheet" type="text/css" href="/styles.css">
+  </head>
+  
+  <body>
+    <h1>🍎 Fruit Collection</h1>
+    
+    <a href="/fruits/new" class="add-btn">+ Add New Fruit</a>
+
+    <% if (fruits.length === 0) { %>
+        <div class="empty-state">
+            <p>No fruits yet! Add your first fruit to get started.</p>
+        </div>
+    <% } else { %>
+        <div class="fruits-grid">
+            <% fruits.forEach(fruit => { %>
+                <div class="fruit-cube">
+                    <a href="/fruits/<%= fruit._id %>">
+                        <%= fruit.name %>
+                    </a>
+                    <span class="status-badge <%= fruit.isReadyToEat ? 'ready' : 'not-ready' %>">
+                        <%= fruit.isReadyToEat ? '✓ Ready' : '⏳ Not Ready' %>
+                    </span>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</body>
+
+

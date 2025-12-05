@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
 const mongoose = require("mongoose");
+const methodOverride = require("method-override");
+const morgan = require("morgan");
 
 const app = express();
 
@@ -15,7 +17,11 @@ mongoose.connection.on("connected", () => {
 });
 
 const Fruit = require("./models/fruit.js");
+//Middleware
 app.use(express.urlencoded({ extended: false }));
+app.use(methodOverride("_method")); // new
+app.use(morgan("dev")); //new
+app.use(express.static("public")); // Serve static files
 
 
 // Set the view engine to EJS
@@ -26,12 +32,58 @@ app.get("/", async (req, res) => {
   res.render("index.ejs");
 });
 
-// server.js
+
+// GET /fruits
+app.get("/fruits", async (req, res) => {
+  const allFruits = await Fruit.find();
+  res.render("fruits/index.ejs", { fruits: allFruits });
+});
 
 // GET /fruits/new
 app.get("/fruits/new", (req, res) => {
   res.render("fruits/new.ejs");
 });
+
+//SHOW
+// GET fruits/:id
+app.get("/fruits/:fruitId", async (req, res) => {
+  const foundFruit = await Fruit.findById(req.params.fruitId);
+  res.render("fruits/show.ejs", { fruit: foundFruit });
+});
+//DELETE
+app.delete("/fruits/:fruitId", async (req, res) => {
+  await Fruit.findByIdAndDelete(req.params.fruitId)
+  res.redirect('/fruits')
+});
+
+// GET EDIT
+app.get("/fruits/:fruitId/edit", async (req, res) => {
+  const foundFruit = await Fruit.findById(req.params.fruitId);
+  res.render("fruits/edit.ejs", {
+    fruit: foundFruit,
+  });
+});
+
+
+
+// PUT
+// Action update
+app.put("/fruits/:fruitId", async (req, res) => {
+  // Handle the 'isReadyToEat' checkbox data
+  if (req.body.isReadyToEat === "on") {
+    req.body.isReadyToEat = true;
+  } else {
+    req.body.isReadyToEat = false;
+  }
+  
+  // Update the fruit in the database
+  await Fruit.findByIdAndUpdate(req.params.fruitId, req.body);
+
+  // Redirect to the fruit's show page to see the updates
+  res.redirect(`/fruits/${req.params.fruitId}`);
+});
+
+
 
 
 // POST /fruits
@@ -41,11 +93,10 @@ app.post("/fruits", async (req, res) => {
   } else {
     req.body.isReadyToEat = false;
   }
-
-  console.log(req.body)
-await Fruit.create(req.body);
-res.redirect("/fruits/new");
+  await Fruit.create(req.body);
+  res.redirect("/fruits"); // redirect to index fruits
 });
+
 
 
 
